@@ -110,7 +110,7 @@ vault:
       secretShares: 5
       secretThreshold: 3
     kubernetes:
-      secretNamespace: devops-400
+      secretNamespace: test
   externalConfig:
     policies:
       - name: allow_secrets
@@ -120,9 +120,9 @@ vault:
     auth:
       - type: kubernetes
         roles:
-          - name: devops-400
-            bound_service_account_names: ["devops-400", "vault-secrets-webhook"]
-            bound_service_account_namespaces: ["devops-400", "vswh"]
+          - name: test
+            bound_service_account_names: ["test", "vault-secrets-webhook"]
+            bound_service_account_namespaces: ["test", "vswh"]
             policies: allow_secrets
             ttl: 1h
     secrets:

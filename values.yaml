@@ -81,9 +81,9 @@ vault:
         fieldRef:
           fieldPath: metadata.name
   podSecurityContext:
-    fsGroup: 1000
-    runAsUser: 1000
-    runAsGroup: 1000
+    runAsUser: 0
+    fsGroup: 0
+    runAsGroup: 0
   securityContext:
     capabilities:
       drop:

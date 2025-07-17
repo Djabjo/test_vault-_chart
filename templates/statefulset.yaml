@@ -94,7 +94,7 @@ spec:
       volumes:
         - name: vault-tls
           secret:
-            secretName: {{ .Values.vault.tls.secretName | quote }}
+            secretName: {{ .Values.tls.secretName | quote }}
         - name: vault-config
           configMap:
             name: {{ include "vault.fullname" . }}-config

@@ -35,13 +35,13 @@ vault:
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
       cert-manager.io/cluster-issuer: letsencrypt-prod
     hosts:
-      - host: vault2.k8s-dev.dsys.ai
+      - host: vault2.k8s.djabjo.ru
         paths:
           - path: /
             pathType: Prefix
     tls:
       - hosts:
-          - vault2.k8s-dev.dsys.ai
+          - vault2.k8s.djabjo.ru
         secretName: vault-servicetls
   storage:
     enabled: true
@@ -62,7 +62,7 @@ vault:
         claimName: vault-raft
     - name: vault-tls
       secret:
-        secretName: vault-tls
+        secretName: vault-test-tls
   # HCL config as a single string
   configHCL: |
     storage "raft" {
@@ -194,7 +194,7 @@ rbac:
 
 tls:
   enabled: true
-  secretName: vault-tls
+  secretName: vault-test-tls
   selfSigned:
     enabled: true
     commonName: "vault"

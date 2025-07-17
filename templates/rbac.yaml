@@ -6,7 +6,7 @@ metadata:
   name: {{ include "vault.serviceAccountName" . }}
   labels:
     {{- include "vault.labels" . | nindent 4 }}
-  {{- with .Values.vault.serviceAccount.annotations }}
+  {{- with .Values.serviceAccount.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}

@@ -23,7 +23,9 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
+      {{- if .Values.serviceAccount.create }}
       serviceAccountName: {{ include "vault.serviceAccountName" . }}
+      {{- end }}
       {{- with .Values.vault.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -71,14 +73,6 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.vault.volumeMounts }}
-          volumeMounts:
-            {{- toYaml .Values.vault.volumeMounts | nindent 12 }}
-          {{- end }}
-          {{- if .Values.vault.env }}
-          env:
-            {{- toYaml .Values.vault.env | nindent 12 }}
-          {{- end }}
           command:
             - vault
             - server
@@ -88,6 +82,10 @@ spec:
             - name: vault-config
               mountPath: /vault/config
               readOnly: true
+          {{- if .Values.vault.env }}
+          env:
+            {{- toYaml .Values.vault.env | nindent 12 }}
+          {{- end }}
       volumes:
         {{- if .Values.vault.volumes }}
         {{- toYaml .Values.vault.volumes | nindent 8 }}

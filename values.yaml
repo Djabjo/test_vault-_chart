@@ -6,6 +6,12 @@
 nameOverride: ""
 fullnameOverride: ""
 
+# Service account configuration
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
 # Vault deployment configuration
 vault:
   # Number of Vault replicas
@@ -16,12 +22,6 @@ vault:
     repository: hashicorp/vault
     tag: "1.14.1"
     pullPolicy: IfNotPresent
-  
-  # Service account configuration
-  serviceAccount:
-    create: true
-    name: ""
-    annotations: {}
   
   # Service configuration
   service:

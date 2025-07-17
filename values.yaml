@@ -50,19 +50,8 @@ vault:
       - ReadWriteOnce
     size: 1Gi
     volumeMode: Filesystem
-  volumeMounts:
-    - name: vault-raft
-      mountPath: /vault/file
-    - name: vault-tls
-      mountPath: /vault/tls
-      readOnly: true
-  volumes:
-    - name: vault-raft
-      persistentVolumeClaim:
-        claimName: vault-raft
-    - name: vault-tls
-      secret:
-        secretName: vault-test-tls
+  volumeMounts: []
+  volumes: []
   # HCL config as a single string
   configHCL: |
     storage "raft" {

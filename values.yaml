@@ -26,14 +26,14 @@ vault:
     loadBalancerIP: ""
     externalTrafficPolicy: ""
   ingress:
-    enabled: false
+    enabled: true
     className: "nginx"
     annotations:
       kubernetes.io/ingress.class: "nginx"
+      cert-manager.io/cluster-issuer: letsencrypt-prod
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       nginx.ingress.kubernetes.io/ssl-passthrough: "true"
       nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-      cert-manager.io/cluster-issuer: letsencrypt-prod
     hosts:
       - host: vault2.k8s.djabjo.ru
         paths:
@@ -70,10 +70,10 @@ vault:
     }
     listener "tcp" {
       address = "0.0.0.0:8200"
-      tls_cert_file = "/vault/tls/server.crt"
-      tls_key_file  = "/vault/tls/server.key"
+      tls_cert_file = "/vault/tls/tls.crt"
+      tls_key_file  = "/vault/tls/tls.key"
     }
-    api_addr = "https://vault.default:8200"
+    api_addr = "https://vault2.k8s.djabjo.ru:8200"
     cluster_addr = "https://$(POD_NAME):8201"
     ui = true
   resources:
@@ -194,7 +194,7 @@ rbac:
 
 tls:
   enabled: true
-  secretName: vault-test-tls
+  secretName: vault-servicetls
   selfSigned:
     enabled: true
     commonName: "vault"

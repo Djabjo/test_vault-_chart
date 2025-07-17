@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+пшеapiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "vault.fullname" . }}
@@ -78,21 +78,29 @@ spec:
             - server
             - -config=/vault/config/vault.hcl
           volumeMounts:
-            {{- toYaml .Values.vault.volumeMounts | nindent 12 }}
+            - name: vault-tls
+              mountPath: /vault/tls
+              readOnly: true
             - name: vault-config
               mountPath: /vault/config
               readOnly: true
+            {{- if .Values.vault.volumeMounts }}
+            {{- toYaml .Values.vault.volumeMounts | nindent 12 }}
+            {{- end }}
           {{- if .Values.vault.env }}
           env:
             {{- toYaml .Values.vault.env | nindent 12 }}
           {{- end }}
       volumes:
-        {{- if .Values.vault.volumes }}
-        {{- toYaml .Values.vault.volumes | nindent 8 }}
-        {{- end }}
+        - name: vault-tls
+          secret:
+            secretName: {{ .Values.vault.tls.secretName | quote }}
         - name: vault-config
           configMap:
             name: {{ include "vault.fullname" . }}-config
+        {{- if .Values.vault.volumes }}
+        {{- toYaml .Values.vault.volumes | nindent 8 }}
+        {{- end }}
       {{- with .Values.vault.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

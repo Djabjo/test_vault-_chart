@@ -41,7 +41,7 @@ spec:
       initContainers:
         - name: fix-permissions
           image: busybox
-          command: ["sh", "-c", "chown -R 1000:1000 /vault/file"]
+          command: ["sh", "-c", "ls -l /vault && ls -l /vault/file && chown -R 1000:1000 /vault/file && ls -l /vault/file"]
           securityContext:
             runAsUser: 0
           volumeMounts:

@@ -1,1 +1,261 @@
+# Default values for vault.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
 
+# Global settings
+nameOverride: ""
+fullnameOverride: ""
+
+# Vault deployment configuration
+vault:
+  # Number of Vault replicas
+  size: 3
+  
+  # Vault image configuration
+  image:
+    repository: hashicorp/vault
+    tag: "1.14.1"
+    pullPolicy: IfNotPresent
+  
+  # Service account configuration
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+  
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 8200
+    annotations: {}
+    loadBalancerIP: ""
+    externalTrafficPolicy: ""
+  
+  # Ingress configuration
+  ingress:
+    enabled: false
+    className: "nginx"
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: vault2.k8s-dev.dsys.ai
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - vault2.k8s-dev.dsys.ai
+        secretName: vault-servicetls
+  
+  # Storage configuration
+  storage:
+    enabled: true
+    storageClassName: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+    volumeMode: Filesystem
+  
+  # Volume mounts
+  volumeMounts:
+    - name: vault-raft
+      mountPath: /vault/file
+    - name: vault-tls
+      mountPath: /vault/tls
+      readOnly: true
+  
+  # Volumes
+  volumes:
+    - name: vault-raft
+      persistentVolumeClaim:
+        claimName: vault-raft
+    - name: vault-tls
+      secret:
+        secretName: vault-tls
+  
+  # Vault configuration
+  config:
+    storage:
+      raft:
+        path: "/vault/file"
+    listener:
+      tcp:
+        address: "0.0.0.0:8200"
+        tls_cert_file: /vault/tls/server.crt
+        tls_key_file: /vault/tls/server.key
+    api_addr: https://vault.default:8200
+    cluster_addr: "https://${.Env.POD_NAME}:8201"
+    ui: true
+  
+  # Resources configuration
+  resources:
+    vault:
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+  
+  # Environment variables
+  env:
+    - name: VAULT_LOG_LEVEL
+      value: "debug"
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+  
+  # Pod security context
+  podSecurityContext:
+    fsGroup: 1000
+    runAsUser: 1000
+    runAsGroup: 1000
+  
+  # Container security context
+  securityContext:
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+  
+  # Scheduling configuration
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+  
+  # Annotations and labels
+  annotations:
+    common/annotation: "true"
+  
+  vaultAnnotations:
+    type/instance: "vault"
+  
+  vaultLabels:
+    example.com/log-format: "json"
+  
+  # Velero backup configuration
+  veleroEnabled: true
+  
+  # CA certificate distribution
+  caNamespaces:
+    - "vswh"
+  
+  # Unseal configuration
+  unsealConfig:
+    options:
+      preFlightChecks: true
+      storeRootToken: true
+      secretShares: 5
+      secretThreshold: 3
+    kubernetes:
+      secretNamespace: devops-400
+  
+  # External configuration
+  externalConfig:
+    policies:
+      - name: allow_secrets
+        rules: path "secret/*" {
+          capabilities = ["create", "read", "update", "delete", "list"]
+          }
+    
+    auth:
+      - type: kubernetes
+        roles:
+          - name: devops-400
+            bound_service_account_names: ["devops-400", "vault-secrets-webhook"]
+            bound_service_account_namespaces: ["devops-400", "vswh"]
+            policies: allow_secrets
+            ttl: 1h
+    
+    secrets:
+      - path: secret
+        type: kv
+        description: General secrets.
+        options:
+          version: 2
+    
+    startupSecrets:
+      - type: kv
+        path: secret/data/accounts/aws
+        data:
+          data:
+            AWS_ACCESS_KEY_ID: secretId
+            AWS_SECRET_ACCESS_KEY: s3cr3t
+      - type: kv
+        path: secret/data/dockerrepo
+        data:
+          data:
+            DOCKER_REPO_USER: dockerrepouser
+            DOCKER_REPO_PASSWORD: dockerrepopassword
+      - type: kv
+        path: secret/data/mysql
+        data:
+          data:
+            MYSQL_ROOT_PASSWORD: s3cr3t
+  
+  # Additional settings
+  statsdDisabled: true
+  serviceRegistrationEnabled: true
+
+# RBAC configuration
+rbac:
+  create: true
+  rules:
+    - apiGroups: [""]
+      resources: ["secrets", "configmaps", "events", "pods", "services"]
+      verbs: ["*"]
+    - apiGroups: [""]
+      resources: ["namespaces"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["apps", "extensions"]
+      resources: ["replicasets", "deployments", "deployments/finalizers", "statefulsets"]
+      verbs: ["*"]
+    - apiGroups: ["apiextensions.k8s.io"]
+      resources: ["customresourcedefinitions"]
+      verbs: ["get"]
+    - apiGroups: ["route.openshift.io"]
+      resources: ["routes", "routes/custom-host"]
+      verbs: ["list", "get", "create", "update", "watch"]
+    - apiGroups: ["extensions", "networking.k8s.io"]
+      resources: ["ingresses"]
+      verbs: ["list", "get", "create", "update", "watch"]
+    - apiGroups: ["monitoring.coreos.com"]
+      resources: ["servicemonitors"]
+      verbs: ["update", "list", "get", "create", "watch"]
+    - apiGroups: ["coordination.k8s.io"]
+      resources: ["leases"]
+      verbs: ["*"]
+
+# TLS configuration
+tls:
+  enabled: true
+  secretName: vault-tls
+  # Self-signed certificate configuration
+  selfSigned:
+    enabled: true
+    commonName: "vault"
+    organization: "Vault"
+    country: "US"
+    state: "CA"
+    locality: "San Francisco"
+
+# Pod disruption budget
+pdb:
+  enabled: true
+  minAvailable: 1
+  maxUnavailable: 1
+
+# Monitoring
+monitoring:
+  serviceMonitor:
+    enabled: false
+    additionalLabels: {}
+    metricRelabelings: []
+    relabelings: [] 

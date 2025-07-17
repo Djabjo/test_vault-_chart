@@ -1,0 +1,17 @@
+apiVersion: v2
+name: vault
+description: A Helm chart for HashiCorp Vault - A tool for secrets management, encryption as a service, and privileged access management
+type: application
+version: 0.1.0
+appVersion: "1.14.1"
+keywords:
+  - vault
+  - secrets
+  - security
+  - hashicorp
+home: https://www.vaultproject.io/
+sources:
+  - https://github.com/hashicorp/vault
+maintainers:
+  - name: Your Name
+    email: your.email@example.com 

@@ -6,29 +6,4 @@ metadata:
     {{- include "vault.labels" . | nindent 4 }}
 data:
   vault.hcl: |-
-    {{- .Values.vault.configHCL | nindent 4 }}
-
-    {{- if .Values.vault.config.listener }}
-    listener "tcp" {
-      address = "{{ .Values.vault.config.listener.tcp.address }}"
-      {{- if .Values.vault.config.listener.tcp }}
-      {{- toYaml .Values.vault.config.listener.tcp | nindent 6 }}
-      {{- end }}
-    }
-    {{- end }}
-
-    {{- if .Values.vault.config.api_addr }}
-    api_addr = "{{ .Values.vault.config.api_addr }}"
-    {{- end }}
-
-    {{- if .Values.vault.config.cluster_addr }}
-    cluster_addr = "{{ .Values.vault.config.cluster_addr }}"
-    {{- end }}
-
-    {{- if .Values.vault.config.ui }}
-    ui = {{ .Values.vault.config.ui }}
-    {{- end }}
-
-    {{- if .Values.vault.config.extraConfig }}
-    {{- toYaml .Values.vault.config.extraConfig | nindent 4 }}
-    {{- end }} 
+    {{- .Values.vault.configHCL | nindent 4 }} 

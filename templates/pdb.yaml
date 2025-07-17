@@ -1,5 +1,4 @@
-{{- if .Values.pdb.enabled }}
-{{- if gt .Values.vault.size 1 }}
+{{- if and .Values.pdb.enabled (gt (int .Values.vault.size) 1) }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -16,5 +15,4 @@ spec:
   selector:
     matchLabels:
       {{- include "vault.selectorLabels" . | nindent 6 }}
-{{- end }}
 {{- end }} 

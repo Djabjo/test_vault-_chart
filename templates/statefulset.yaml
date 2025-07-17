@@ -30,6 +30,13 @@ spec:
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /vault/file"]
+          volumeMounts:
+            - name: vault-raft
+              mountPath: /vault/file
       {{- if .Values.vault.veleroEnabled }}
       # Velero backup annotations
       annotations:

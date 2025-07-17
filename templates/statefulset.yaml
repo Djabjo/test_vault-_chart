@@ -38,6 +38,15 @@ spec:
         post.hook.backup.velero.io/container: vault
         post.hook.backup.velero.io/command: '["/bin/sh", "-c", "rm -f /tmp/snapshot.snap"]'
       {{- end }}
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ["sh", "-c", "chown -R 1000:1000 /vault/file"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: vault-raft
+              mountPath: /vault/file
       containers:
         - name: vault
           image: "{{ .Values.vault.image.repository }}:{{ .Values.vault.image.tag }}"

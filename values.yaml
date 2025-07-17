@@ -14,24 +14,17 @@ serviceAccount:
 
 # Vault deployment configuration
 vault:
-  # Number of Vault replicas
   size: 3
-  
-  # Vault image configuration
   image:
     repository: hashicorp/vault
     tag: "1.14.1"
     pullPolicy: IfNotPresent
-  
-  # Service configuration
   service:
     type: ClusterIP
     port: 8200
     annotations: {}
     loadBalancerIP: ""
     externalTrafficPolicy: ""
-  
-  # Ingress configuration
   ingress:
     enabled: false
     className: "nginx"
@@ -50,8 +43,6 @@ vault:
       - hosts:
           - vault2.k8s-dev.dsys.ai
         secretName: vault-servicetls
-  
-  # Storage configuration
   storage:
     enabled: true
     storageClassName: ""
@@ -59,16 +50,12 @@ vault:
       - ReadWriteOnce
     size: 1Gi
     volumeMode: Filesystem
-  
-  # Volume mounts
   volumeMounts:
     - name: vault-raft
       mountPath: /vault/file
     - name: vault-tls
       mountPath: /vault/tls
       readOnly: true
-  
-  # Volumes
   volumes:
     - name: vault-raft
       persistentVolumeClaim:
@@ -76,22 +63,19 @@ vault:
     - name: vault-tls
       secret:
         secretName: vault-tls
-  
-  # Vault configuration
-  config:
-    storage:
-      raft:
-        path: "/vault/file"
-    listener:
-      tcp:
-        address: "0.0.0.0:8200"
-        tls_cert_file: /vault/tls/server.crt
-        tls_key_file: /vault/tls/server.key
-    api_addr: https://vault.default:8200
-    cluster_addr: "https://${.Env.POD_NAME}:8201"
-    ui: true
-  
-  # Resources configuration
+  # HCL config as a single string
+  configHCL: |
+    storage "raft" {
+      path = "/vault/file"
+    }
+    listener "tcp" {
+      address = "0.0.0.0:8200"
+      tls_cert_file = "/vault/tls/server.crt"
+      tls_key_file  = "/vault/tls/server.key"
+    }
+    api_addr = "https://vault.default:8200"
+    cluster_addr = "https://${.Env.POD_NAME}:8201"
+    ui = true
   resources:
     vault:
       limits:
@@ -100,8 +84,6 @@ vault:
       requests:
         memory: "256Mi"
         cpu: "100m"
-  
-  # Environment variables
   env:
     - name: VAULT_LOG_LEVEL
       value: "debug"
@@ -109,14 +91,10 @@ vault:
       valueFrom:
         fieldRef:
           fieldPath: metadata.name
-  
-  # Pod security context
   podSecurityContext:
     fsGroup: 1000
     runAsUser: 1000
     runAsGroup: 1000
-  
-  # Container security context
   securityContext:
     capabilities:
       drop:
@@ -124,30 +102,18 @@ vault:
     readOnlyRootFilesystem: true
     runAsNonRoot: true
     runAsUser: 1000
-  
-  # Scheduling configuration
   nodeSelector: {}
   affinity: {}
   tolerations: []
-  
-  # Annotations and labels
   annotations:
     common/annotation: "true"
-  
   vaultAnnotations:
     type/instance: "vault"
-  
   vaultLabels:
     example.com/log-format: "json"
-  
-  # Velero backup configuration
   veleroEnabled: true
-  
-  # CA certificate distribution
   caNamespaces:
     - "vswh"
-  
-  # Unseal configuration
   unsealConfig:
     options:
       preFlightChecks: true
@@ -156,15 +122,12 @@ vault:
       secretThreshold: 3
     kubernetes:
       secretNamespace: devops-400
-  
-  # External configuration
   externalConfig:
     policies:
       - name: allow_secrets
         rules: path "secret/*" {
           capabilities = ["create", "read", "update", "delete", "list"]
           }
-    
     auth:
       - type: kubernetes
         roles:
@@ -173,14 +136,12 @@ vault:
             bound_service_account_namespaces: ["devops-400", "vswh"]
             policies: allow_secrets
             ttl: 1h
-    
     secrets:
       - path: secret
         type: kv
         description: General secrets.
         options:
           version: 2
-    
     startupSecrets:
       - type: kv
         path: secret/data/accounts/aws
@@ -199,8 +160,6 @@ vault:
         data:
           data:
             MYSQL_ROOT_PASSWORD: s3cr3t
-  
-  # Additional settings
   statsdDisabled: true
   serviceRegistrationEnabled: true
 
@@ -233,11 +192,9 @@ rbac:
       resources: ["leases"]
       verbs: ["*"]
 
-# TLS configuration
 tls:
   enabled: true
   secretName: vault-tls
-  # Self-signed certificate configuration
   selfSigned:
     enabled: true
     commonName: "vault"
@@ -245,14 +202,9 @@ tls:
     country: "US"
     state: "CA"
     locality: "San Francisco"
-
-# Pod disruption budget
 pdb:
   enabled: true
   minAvailable: 1
-  maxUnavailable: 1
-
-# Monitoring
 monitoring:
   serviceMonitor:
     enabled: false

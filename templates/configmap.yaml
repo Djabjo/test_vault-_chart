@@ -5,15 +5,8 @@ metadata:
   labels:
     {{- include "vault.labels" . | nindent 4 }}
 data:
-  vault.hcl: |
-    {{- if .Values.vault.config.storage }}
-    storage "raft" {
-      path = "{{ .Values.vault.config.storage.raft.path }}"
-      {{- if .Values.vault.config.storage.raft }}
-      {{- toYaml .Values.vault.config.storage.raft | nindent 6 }}
-      {{- end }}
-    }
-    {{- end }}
+  vault.hcl: |-
+    {{- .Values.vault.configHCL | nindent 4 }}
 
     {{- if .Values.vault.config.listener }}
     listener "tcp" {

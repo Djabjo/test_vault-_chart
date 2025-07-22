@@ -151,7 +151,7 @@ monitoring:
     metricRelabelings: []
     relabelings: []
     
-#ingress
+#ingress.yaml
 ingress:
   enabled: true
   annotations:
@@ -167,6 +167,7 @@ ingress:
         - vault2.k8s.djabjo.ru
       secretName: vault-service-tls
 
+#model cr-raft.yaml, vault pod
 raft:
   replicaCount: 3
   image:

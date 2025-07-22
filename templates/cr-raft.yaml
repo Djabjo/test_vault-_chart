@@ -5,11 +5,11 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ include "vault.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- with .Values.labels }}
+    {{- with .Values.raft.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  replicas: {{ .Values.replicaCountvault }}
+  replicas: {{ .Values.raft.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ include "vault.name" . }}
@@ -20,53 +20,53 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "vault.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
-        {{- with .Values.podLabels }}
+        {{- with .Values.raft.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       annotations:
-        {{- with .Values.podAnnotations }}
+        {{- with .Values.raft.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      serviceAccountName: {{ .Values.serviceAccountvault.name | default (include "vault.serviceAccountName" .) }}
-      {{- with .Values.podSecurityContextvault }}
+      serviceAccountName: {{ .Values.raft.serviceAccount.name | default (include "vault.serviceAccountName" .) }}
+      {{- with .Values.raft.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinityvault }}
+      {{- with .Values.raft.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.nodeSelectorvault }}
+      {{- with .Values.raft.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerationsvault }}
+      {{- with .Values.raft.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSecondsvault }}
+      terminationGracePeriodSeconds: {{ .Values.raft.terminationGracePeriodSeconds }}
       initContainers:
         - name: raft-permission
-          image: {{ .Values.initContainer.images | default "busybox" }}
+          image: {{ .Values.raft.initContainer.image | default "busybox" }}
           command:
             - /bin/sh
             - -c
             - |
-              chown -R {{ .Values.securityContext.runAsUser | default 100 }}:{{ .Values.securityContext.runAsGroup | default 1000 }} /vault/file
+              chown -R {{ .Values.raft.podSecurityContext.runAsUser | default 100 }}:{{ .Values.raft.podSecurityContext.runAsGroup | default 1000 }} /vault/file
           volumeMounts:
             - name: vault-raft
               mountPath: /vault/file
       containers:
         - name: vault
-          image: {{ .Values.images.repository }}:{{ .Values.images.tag }}
-          imagePullPolicy: {{ .Values.images.pullPolicy }}
-          {{- with .Values.securityContext }}
+          image: {{ .Values.raft.image.repository }}:{{ .Values.raft.image.tag }}
+          imagePullPolicy: {{ .Values.raft.image.pullPolicy }}
+          {{- with .Values.raft.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           env:
-            {{- range .Values.vaultEnvsConfig }}
+            {{- range .Values.raft.vaultEnvsConfig }}
             - name: {{ .name }}
               value: {{ .value | quote }}
             {{- end }}
@@ -87,39 +87,39 @@ spec:
               path: /v1/sys/health
               port: 8200
               scheme: HTTPS
-            initialDelaySeconds: {{ .Values.livenessProbevault.initialDelaySeconds }}
-            periodSeconds: {{ .Values.livenessProbevault.periodSeconds }}
-            timeoutSeconds: {{ .Values.livenessProbevault.timeoutSeconds }}
-            successThreshold: {{ .Values.livenessProbevault.successThreshold }}
+            initialDelaySeconds: {{ .Values.raft.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.raft.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.raft.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.raft.livenessProbe.successThreshold }}
           readinessProbe:
             httpGet:
               path: /v1/sys/health
               port: 8200
               scheme: HTTPS
-            periodSeconds: {{ .Values.readinessProbevault.periodSeconds }}
-            timeoutSeconds: {{ .Values.readinessProbevault.timeoutSeconds }}
-            successThreshold: {{ .Values.readinessProbevault.successThreshold }}
+            periodSeconds: {{ .Values.raft.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.raft.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.raft.readinessProbe.successThreshold }}
           resources:
-            {{- toYaml .Values.resourcesvault | nindent 12 }}
+            {{- toYaml .Values.raft.resources | nindent 12 }}
       volumes:
         - name: config
           configMap:
             name: {{ include "vault.fullname" . }}-config
         - name: vault-tls
           secret:
-            secretName: {{ .Values.tlsSecretName }}
+            secretName: {{ .Values.raft.tlsSecretName }}
   volumeClaimTemplates:
     - metadata:
         name: vault-raft
-        {{- with .Values.pvc.annotations }}
+        {{- with .Values.raft.pvc.annotations }}
         annotations:
           {{- toYaml . | nindent 10 }}
         {{- end }}
       spec:
         accessModes:
-          - {{ .Values.pvc.accessMode | default "ReadWriteOnce" }}
+          - {{ .Values.raft.pvc.accessMode | default "ReadWriteOnce" }}
         resources:
           requests:
-            storage: {{ .Values.pvc.size | default "1Gi" }}
-        storageClassName: {{ .Values.pvc.storageClassName | quote }}
+            storage: {{ .Values.raft.pvc.size | default "1Gi" }}
+        storageClassName: {{ .Values.raft.pvc.storageClassName | quote }}
         volumeMode: Filesystem

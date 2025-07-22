@@ -100,11 +100,9 @@ ingress:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
     cert-manager.io/cluster-issuer: letsencrypt-prod
   ingressClassName: nginx
-  hosts:
-    - host: vault.k8s.djabjo.ru
-      paths:
-        - path: /
-          pathType: Prefix
+
+  host: vault.k8s.djabjo.ru
+
   tls:
     - hosts:
         - vault.k8s.djabjo.ru

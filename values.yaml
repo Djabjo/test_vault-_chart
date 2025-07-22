@@ -153,7 +153,7 @@ monitoring:
 
 # Vault Raft StatefulSet variables
 raft: 
-  replicaCount: 3
+  replicaCount: 1
 
   image:
     repository: hashicorp/vault

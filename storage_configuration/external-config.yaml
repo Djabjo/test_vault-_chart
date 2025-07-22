@@ -37,7 +37,7 @@
           DOCKER_REPO_PASSWORD: dockerrepopassword
           
     - type: kv
-      path: secret/data/mysql
+      path: secret/data/mysqlq
       data:
         data:
           MYSQL_ROOT: pisa

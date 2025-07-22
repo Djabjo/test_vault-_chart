@@ -4,6 +4,7 @@ policies:
       path "secret/*" {
         capabilities = ["create", "read", "update", "delete", "list"]
       }
+
 auth:
   - type: kubernetes
     roles:
@@ -12,12 +13,14 @@ auth:
         bound_service_account_namespaces: ["vault", "vswh"]
         policies: allow_secrets
         ttl: 1h
+
 secrets:
   - path: secret
     type: kv
     description: General secrets.
     options:
       version: 2
+      
 startupSecrets:
   - type: kv
     path: secret/data/accounts/aws

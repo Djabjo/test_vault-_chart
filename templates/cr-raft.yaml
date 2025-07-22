@@ -106,7 +106,7 @@ spec:
   {{- end }}
 
   externalConfig: |-
-{{ .Files.Get "storage_configuration/external-config.yaml" | nindent 2 }}
+{{ .Files.Get "storage_configuration/external-config.yaml" | nindent 4 }}
 
   vaultEnvsConfig:
     - name: VAULT_LOG_LEVEL

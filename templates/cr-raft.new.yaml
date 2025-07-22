@@ -1,0 +1,87 @@
+apiVersion: "vault.banzaicloud.com/v1alpha1"
+kind: "Vault"
+metadata:
+  name: "vault"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: vault
+    vault_cr: vault
+spec:
+  size: {{ .Values.raft.replicaCount }}
+  
+  image: {{ .Values.raft.image.repository }}:{{ .Values.raft.image.tag }}
+    imagePullPolicy: {{ .Values.raft.image.pullPolicy }}
+
+  annotations:
+    common/annotation: "true"
+
+  vaultAnnotations:
+    type/instance: "vault"
+
+  vaultConfigurerAnnotations:
+    type/instance: "vaultconfigurer"
+
+  vaultLabels:
+    example.com/log-format: "json"
+
+  vaultConfigurerLabels:
+    example.com/log-format: "string"
+
+  serviceAccount: {{ .Values.raft.serviceAccount.name }}
+
+  serviceType: ClusterIP
+
+ volumeClaimTemplates:
+    - metadata:
+        name: vault-raft
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: 1Gi
+
+  volumeMounts:
+    - name: vault-raft
+      mountPath: /vault/file
+
+  veleroEnabled: true
+
+  caNamespaces:
+    - "vswh"
+
+  unsealConfig:
+    options:
+      preFlightChecks: true
+      storeRootToken: true
+      secretShares: 5
+      secretThreshold: 3
+    kubernetes:
+      secretNamespace: {{ .Release.Namespace }}
+
+  config:
+    storage:
+      raft:
+        path: "/vault/file"
+    listener:
+      tcp:
+        address: "0.0.0.0:8200"
+        tls_cert_file: /vault/tls/server.crt
+        tls_key_file: /vault/tls/server.key
+    api_addr: https://vault.{{ .Release.Namespace }}:8200
+    cluster_addr: "https://${.Env.POD_NAME}:8201"
+    ui: true
+
+  statsdDisabled: true
+
+  serviceRegistrationEnabled: true
+
+  resources:
+    vault:
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
+      requests:
+        memory: "256Mi"
+        cpu: "100m"

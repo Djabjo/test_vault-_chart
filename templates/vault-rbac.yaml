@@ -9,13 +9,13 @@ metadata:
     app.kubernetes.io/name: serviceaccount
     app.kubernetes.io/part-of: vault-operator
   name: vault
-  namespace: test
+  namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: vault
-  namespace: test
+  namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups:
   - ""
@@ -106,7 +106,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: vault
-  namespace: test
+  namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -126,7 +126,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: vault
-  namespace: test
+  namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -146,4 +146,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: vault
-  namespace: test
+  namespace: {{ .Release.Namespace }}

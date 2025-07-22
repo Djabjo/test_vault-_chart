@@ -28,7 +28,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      serviceAccountName: {{ .Values.raft.serviceAccount.name | default (include "vault.serviceAccountName" .) }}
+      serviceAccountName: {{ .Values.raft.serviceAccount.name }} | default (include "vault.serviceAccountName" .) }}
       {{- with .Values.raft.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

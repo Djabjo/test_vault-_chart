@@ -160,16 +160,9 @@ raft:
     tag: "1.14.1"
     pullPolicy: IfNotPresent
 
-  initContainer:
-    image: busybox
 
   serviceAccount:
     name: vault
-
-  podSecurityContext:
-    runAsUser: 100
-    runAsGroup: 1000
-    fsGroup: 1000
 
   affinity: {}
   nodeSelector: {}

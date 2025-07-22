@@ -11,7 +11,9 @@ metadata:
   {{- end }}
 spec:
   rules:
-    - host: {{ .Values.ingress.host }}
+    {{- if .Values.ingress.hosts }}
+      {{- range .Values.ingress.hosts }}
+    - host: {{ . | quote }}
       http:
         paths:
           - path: /

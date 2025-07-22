@@ -31,7 +31,7 @@ spec:
 
   serviceType: ClusterIP
 
- volumeClaimTemplates:
+  volumeClaimTemplates:
     - metadata:
         name: vault-raft
       spec:

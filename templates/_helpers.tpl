@@ -107,11 +107,3 @@ Bank-Vaults image tag template to support backward compatibility with the old va
 {{- define "vault-operator.bank-vaults.imageTag" -}}
 {{- .Values.image.bankVaultsTag | default .Values.bankVaults.image.tag -}}
 {{- end -}}
-
-{{- define "vault.name" -}}
-vault
-{{- end -}}
-
-{{- define "vault.serviceAccountName" -}}
-vault
-{{- end -}}

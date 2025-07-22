@@ -168,7 +168,7 @@ ingress:
       secretName: vault-service-tls
 
 raft:
-  replicaCount: 1
+  replicaCount: 3
   image:
     repository: hashicorp/vault
     tag: "1.14.1"

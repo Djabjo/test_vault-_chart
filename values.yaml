@@ -1,203 +1,155 @@
-# Default values for vault.
+# Default values for vault-operator.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-# Global settings
+# -- Number of replicas (pods) to launch.
+replicaCount: 1
+
+pdb:
+  # -- Create pod disruption budget if replicaCount > 1.
+  create: true
+  # -- Min available for PDB.
+  minAvailable: 1
+  # -- Max unavailable for PDB.
+  # maxUnavailable: 1
+
+image:
+  # -- Name of the image repository to pull the container image from.
+  repository: ghcr.io/bank-vaults/vault-operator
+
+  # -- [Image pull policy](https://kubernetes.io/docs/concepts/containers/images/#updating-images) for updating already existing images on a node.
+  pullPolicy: IfNotPresent
+
+  # -- Image tag override for the default value (chart appVersion).
+  tag: ""
+
+  # -- Reference to one or more secrets to be used when [pulling images](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/#create-a-pod-that-uses-your-secret) (from private registries).
+  # (`global.imagePullSecrets` is also supported)
+  imagePullSecrets: []
+
+  # -- Bank-Vaults image repository
+  # **Deprecated:** use `bankVaults.image.repository` instead.
+  bankVaultsRepository: ""
+
+  # -- Bank-Vaults image tag
+  # **Deprecated:** use `bankVaults.image.tag` instead.
+  bankVaultsTag: ""
+
+bankVaults:
+  image:
+    # -- Bank-Vaults image repository.
+    repository: ghcr.io/bank-vaults/bank-vaults
+
+    # -- Bank-Vaults image tag (pinned to supported Bank-Vaults version).
+    tag: "v1.32.0"
+
+# -- A name in place of the chart name for `app:` labels.
 nameOverride: ""
+
+# -- A name to substitute for the full names of resources.
 fullnameOverride: ""
 
-# Service account configuration
+# -- The namespace where the operator watches for vault CR objects.
+# If not defined all namespaces are watched.
+watchNamespace: ""
+syncPeriod: "1m"
+
+# -- Annotations to be added to CRDs.
+crdAnnotations: {}
+
+# -- Labels to be added to deployments.
+labels: {} # team: banzai
+
+# -- Labels to be added to pods.
+podLabels: {} # team: banzai
+
+# -- Annotations to be added to pods.
+podAnnotations: {} # team: banzai
+
 serviceAccount:
+  # -- Enable service account creation.
   create: true
-  name: ""
+
+  # -- Annotations to be added to the service account.
   annotations: {}
 
-# Vault deployment configuration
-vault:
-  size: 3
-  image:
-    repository: hashicorp/vault
-    tag: "1.14.1"
-    pullPolicy: IfNotPresent
-  service:
-    type: ClusterIP
-    port: 8200
-    annotations: {}
-    loadBalancerIP: ""
-    externalTrafficPolicy: ""
-  ingress:
-    enabled: true
-    className: "nginx"
-    annotations:
-      kubernetes.io/ingress.class: "nginx"
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-    hosts:
-      - host: vault2.k8s.djabjo.ru
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - hosts:
-          - vault2.k8s.djabjo.ru
-        secretName: vault-servicetls
-  storage:
-    enabled: true
-    storageClassName: ""
-    accessModes:
-      - ReadWriteOnce
-    size: 1Gi
-    volumeMode: Filesystem
-  volumeMounts: []
-  volumes: []
-  # HCL config as a single string
-  configHCL: |
-    storage "raft" {
-      path = "/vault/file"
-    }
-    listener "tcp" {
-      address = "0.0.0.0:8200"
-      tls_cert_file = "/vault/tls/tls.crt"
-      tls_key_file  = "/vault/tls/tls.key"
-    }
-    api_addr = "https://vault2.k8s.djabjo.ru:8200"
-    cluster_addr = "https://$(POD_NAME):8201"
-    ui = true
-  resources:
-    vault:
-      limits:
-        memory: "512Mi"
-        cpu: "200m"
-      requests:
-        memory: "256Mi"
-        cpu: "100m"
-  env:
-    - name: VAULT_LOG_LEVEL
-      value: "debug"
-    - name: POD_NAME
-      valueFrom:
-        fieldRef:
-          fieldPath: metadata.name
-  podSecurityContext:
-    fsGroup: 1000
-    runAsUser: 1000
-    runAsGroup: 1000
-  securityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    runAsNonRoot: true
-  nodeSelector: {}
-  affinity: {}
-  tolerations: []
-  annotations:
-    common/annotation: "true"
-  vaultAnnotations:
-    type/instance: "vault"
-  vaultLabels:
-    example.com/log-format: "json"
-  veleroEnabled: true
-  caNamespaces:
-    - "vswh"
-  unsealConfig:
-    options:
-      preFlightChecks: true
-      storeRootToken: true
-      secretShares: 5
-      secretThreshold: 3
-    kubernetes:
-      secretNamespace: test
-  externalConfig:
-    policies:
-      - name: allow_secrets
-        rules: path "secret/*" {
-          capabilities = ["create", "read", "update", "delete", "list"]
-          }
-    auth:
-      - type: kubernetes
-        roles:
-          - name: test
-            bound_service_account_names: ["test", "vault-secrets-webhook"]
-            bound_service_account_namespaces: ["test", "vswh"]
-            policies: allow_secrets
-            ttl: 1h
-    secrets:
-      - path: secret
-        type: kv
-        description: General secrets.
-        options:
-          version: 2
-    startupSecrets:
-      - type: kv
-        path: secret/data/accounts/aws
-        data:
-          data:
-            AWS_ACCESS_KEY_ID: secretId
-            AWS_SECRET_ACCESS_KEY: s3cr3t
-      - type: kv
-        path: secret/data/dockerrepo
-        data:
-          data:
-            DOCKER_REPO_USER: dockerrepouser
-            DOCKER_REPO_PASSWORD: dockerrepopassword
-      - type: kv
-        path: secret/data/mysql
-        data:
-          data:
-            MYSQL_ROOT_PASSWORD: s3cr3t
-  statsdDisabled: true
-  serviceRegistrationEnabled: true
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template.
+  name: ""
 
-# RBAC configuration
-rbac:
-  create: true
-  rules:
-    - apiGroups: [""]
-      resources: ["secrets", "configmaps", "events", "pods", "services"]
-      verbs: ["*"]
-    - apiGroups: [""]
-      resources: ["namespaces"]
-      verbs: ["get", "list", "watch"]
-    - apiGroups: ["apps", "extensions"]
-      resources: ["replicasets", "deployments", "deployments/finalizers", "statefulsets"]
-      verbs: ["*"]
-    - apiGroups: ["apiextensions.k8s.io"]
-      resources: ["customresourcedefinitions"]
-      verbs: ["get"]
-    - apiGroups: ["route.openshift.io"]
-      resources: ["routes", "routes/custom-host"]
-      verbs: ["list", "get", "create", "update", "watch"]
-    - apiGroups: ["extensions", "networking.k8s.io"]
-      resources: ["ingresses"]
-      verbs: ["list", "get", "create", "update", "watch"]
-    - apiGroups: ["monitoring.coreos.com"]
-      resources: ["servicemonitors"]
-      verbs: ["update", "list", "get", "create", "watch"]
-    - apiGroups: ["coordination.k8s.io"]
-      resources: ["leases"]
-      verbs: ["*"]
+service:
+  # -- Annotations to be added to the service.
+  annotations: {}
 
-tls:
-  enabled: true
-  secretName: vault-servicetls
-  selfSigned:
-    enabled: true
-    commonName: "vault"
-    organization: "Vault"
-    country: "US"
-    state: "CA"
-    locality: "San Francisco"
-pdb:
-  enabled: true
-  minAvailable: 1
+  # -- Kubernetes [service type](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types).
+  type: ClusterIP
+
+  # -- The name of the service to use.
+  # If not set, a name is generated using the fullname template.
+  name: ""
+
+  externalPort: 80
+  internalPort: 8080
+
+# -- Container resource [requests and limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/).
+# See the [API reference](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources) for details.
+resources:
+  # -- @ignored
+  limits:
+    cpu: 100m
+    memory: 256Mi
+  # -- @ignored
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# -- [Node selector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector) configuration.
+nodeSelector: {}
+
+# -- [Tolerations](https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) for node taints.
+# See the [API reference](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling) for details.
+tolerations: []
+
+# -- [Affinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity) configuration.
+# See the [API reference](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling) for details.
+affinity: {}
+
+# -- Specify a priority class name to set [pod priority](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#pod-priority).
+priorityClassName: ""
+
+# -- Pod [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod).
+# See the [API reference](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context) for details.
+podSecurityContext: {}
+
+# -- Container [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container).
+# See the [API reference](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context-1) for details.
+securityContext: {}
+
+terminationGracePeriodSeconds: 10
+
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+readinessProbe:
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+
+psp:
+  enabled: false
+  vaultSA: "vault"
+
 monitoring:
   serviceMonitor:
+    # -- Enable Prometheus ServiceMonitor.
+    # See the [documentation](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/design.md#servicemonitor) and the [API reference](https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#servicemonitor) for details.
     enabled: false
+
     additionalLabels: {}
     metricRelabelings: []
-    relabelings: [] 
-
+    relabelings: []
 # Vault Raft StatefulSet variables
 replicaCountvault: 3
 

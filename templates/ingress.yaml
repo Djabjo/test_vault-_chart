@@ -24,6 +24,7 @@ spec:
     
   {{- if .Values.ingress.tls }}
   tls:
+    ingressClassName: {{ .Values.ingress.ingressClassName }}
   {{- range .Values.ingress.tls }}
     - hosts:
   {{- range .hosts }}

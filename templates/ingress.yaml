@@ -10,6 +10,7 @@ metadata:
     {{- end }}
   {{- end }}
 spec:
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
   rules:
     - host: {{ .Values.ingress.host }}
       http:
@@ -24,7 +25,6 @@ spec:
     
   {{- if .Values.ingress.tls }}
   tls:
-    ingressClassName: {{ .Values.ingress.ingressClassName }}
   {{- range .Values.ingress.tls }}
     - hosts:
   {{- range .hosts }}

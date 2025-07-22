@@ -105,8 +105,7 @@ spec:
   {{- toYaml .Values.raft.resources | nindent 4 }}
   {{- end }}
 
-  externalConfig:
-{{ .Files.Get "storage_configuration/external-config.yaml" | nindent 4 }}
+  externalConfig: {{ .Files.Get "storage_configuration/external-config.yaml" | nindent 4 }}
 
   vaultEnvsConfig:
     - name: VAULT_LOG_LEVEL

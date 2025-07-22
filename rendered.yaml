@@ -510,8 +510,7 @@ spec:
       cpu: 100m
       memory: 256Mi
 
-  externalConfig: |-
-
+  externalConfig: 
     policies:
       - name: allow_secrets
         rules: |
@@ -534,7 +533,7 @@ spec:
         description: General secrets.
         options:
           version: 2
-          
+    
     startupSecrets:
       - type: kv
         path: secret/data/accounts/aws
@@ -542,17 +541,20 @@ spec:
           data:
             AWS_ACCESS_KEY_ID: secretId
             AWS_SECRET_ACCESS_KEY: s3cr3t
+    
       - type: kv
         path: secret/data/dockerrepo
         data:
           data:
             DOCKER_REPO_USER: dockerrepouser
             DOCKER_REPO_PASSWORD: dockerrepopassword
+            
       - type: kv
         path: secret/data/mysql
         data:
           data:
             MYSQL_ROOT: pisa
+
 
   vaultEnvsConfig:
     - name: VAULT_LOG_LEVEL

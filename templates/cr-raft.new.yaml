@@ -10,7 +10,7 @@ spec:
   size: {{ .Values.raft.replicaCount }}
   
   image: {{ .Values.raft.image.repository }}:{{ .Values.raft.image.tag }}
-    imagePullPolicy: {{ .Values.raft.image.pullPolicy }}
+  imagePullPolicy: {{ .Values.raft.image.pullPolicy }}
 
   annotations:
     common/annotation: "true"

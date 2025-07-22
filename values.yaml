@@ -197,3 +197,57 @@ monitoring:
     additionalLabels: {}
     metricRelabelings: []
     relabelings: [] 
+
+# Vault Raft StatefulSet variables
+replicaCountvault: 3
+
+images:
+  repository: hashicorp/vault
+  tag: "1.14.1"
+  pullPolicy: IfNotPresent
+
+initContainer:
+  image: busybox
+
+serviceAccountvault:
+  name: vault
+
+podSecurityContextvault:
+  runAsUser: 100
+  runAsGroup: 1000
+  fsGroup: 1000
+
+affinityvault: {}
+nodeSelectorvault: {}
+tolerationsvault: []
+terminationGracePeriodSecondsvault: 10
+
+vaultEnvsConfig:
+  - name: VAULT_LOG_LEVEL
+    value: debug
+
+livenessProbevault:
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+
+readinessProbevault:
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+
+resourcesvault:
+  limits:
+    cpu: 200m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+pvc:
+  size: 1Gi
+  storageClassName: "local-path"
+  accessMode: ReadWriteOnce
+
+tlsSecretName: vault-servicetls

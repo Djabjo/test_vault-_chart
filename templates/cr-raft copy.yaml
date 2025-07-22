@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "vault.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "vault.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- with .Values.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  replicas: {{ .Values.replicaCountvault }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "vault.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  serviceName: {{ include "vault.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "vault.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccountvault.name | default (include "vault.serviceAccountName" .) }}
+      {{- with .Values.podSecurityContextvault }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinityvault }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelectorvault }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerationsvault }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSecondsvault }}
+      initContainers:
+        - name: raft-permission
+          image: {{ .Values.initContainer.images | default "busybox" }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              chown -R {{ .Values.securityContext.runAsUser | default 100 }}:{{ .Values.securityContext.runAsGroup | default 1000 }} /vault/file
+          volumeMounts:
+            - name: vault-raft
+              mountPath: /vault/file
+      containers:
+        - name: vault
+          image: {{ .Values.images.repository }}:{{ .Values.images.tag }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            {{- range .Values.vaultEnvsConfig }}
+            - name: {{ .name }}
+              value: {{ .value | quote }}
+            {{- end }}
+          ports:
+            - containerPort: 8200
+              name: http
+            - containerPort: 8201
+              name: cluster
+          volumeMounts:
+            - name: vault-raft
+              mountPath: /vault/file
+            - name: config
+              mountPath: /vault/config
+            - name: vault-tls
+              mountPath: /vault/tls
+          livenessProbe:
+            httpGet:
+              path: /v1/sys/health
+              port: 8200
+              scheme: HTTPS
+            initialDelaySeconds: {{ .Values.livenessProbevault.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbevault.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbevault.timeoutSeconds }}
+            successThreshold: {{ .Values.livenessProbevault.successThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /v1/sys/health
+              port: 8200
+              scheme: HTTPS
+            periodSeconds: {{ .Values.readinessProbevault.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbevault.timeoutSeconds }}
+            successThreshold: {{ .Values.readinessProbevault.successThreshold }}
+          resources:
+            {{- toYaml .Values.resourcesvault | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "vault.fullname" . }}-config
+        - name: vault-tls
+          secret:
+            secretName: {{ .Values.tlsSecretName }}
+  volumeClaimTemplates:
+    - metadata:
+        name: vault-raft
+        {{- with .Values.pvc.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - {{ .Values.pvc.accessMode | default "ReadWriteOnce" }}
+        resources:
+          requests:
+            storage: {{ .Values.pvc.size | default "1Gi" }}
+        storageClassName: {{ .Values.pvc.storageClassName | quote }}
+        volumeMode: Filesystem

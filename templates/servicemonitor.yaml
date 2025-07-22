@@ -1,18 +1,24 @@
-{{- if .Values.monitoring.serviceMonitor.enabled }}
+{{ if .Values.monitoring.serviceMonitor.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "vault.fullname" . }}
+  name: {{ include "vault-operator.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "vault.labels" . | nindent 4 }}
+    helm.sh/chart: {{ include "vault-operator.chart" . }}
+    app.kubernetes.io/name: {{ include "vault-operator.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{- with .Values.monitoring.serviceMonitor.additionalLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "vault-operator.name" . }}
   endpoints:
-  - port: http
-    path: /v1/sys/metrics
-    interval: 30s
+  - port: http-metrics
+    path: /metrics
     {{- with .Values.monitoring.serviceMonitor.metricRelabelings }}
     metricRelabelings:
       {{- toYaml . | nindent 6 }}
@@ -21,7 +27,7 @@ spec:
     relabelings:
       {{- toYaml . | nindent 6 }}
     {{- end }}
-  selector:
-    matchLabels:
-      {{- include "vault.selectorLabels" . | nindent 6 }}
-{{- end }} 
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+{{- end }}

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "vault.fullname" . }}
+  name: vault
   labels:
     app.kubernetes.io/name: {{ include "vault.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -14,7 +14,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ include "vault.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-  serviceName: {{ include "vault.fullname" . }}
+  serviceName: vault  
   template:
     metadata:
       labels:
@@ -104,7 +104,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ include "vault.fullname" . }}-config
+            name: vault-config
         - name: vault-tls
           secret:
             secretName: {{ .Values.raft.tlsSecretName }}

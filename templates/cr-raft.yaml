@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "vault.fullname" . }}
+  name: {{ include "vault-operator.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "vault.name" . }}
+    app.kubernetes.io/name: {{ include "vault-operator.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     {{- with .Values.raft.labels }}
     {{- toYaml . | nindent 4 }}
@@ -12,13 +12,13 @@ spec:
   replicas: {{ .Values.raft.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "vault.name" . }}
+      app.kubernetes.io/name: {{ include "vault-operator.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-  serviceName: {{ include "vault.fullname" . }}
+  serviceName: {{ include "vault-operator.fullname" . }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "vault.name" . }}
+        app.kubernetes.io/name: {{ include "vault-operator.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
         {{- with .Values.raft.podLabels }}
         {{- toYaml . | nindent 8 }}
@@ -28,7 +28,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      serviceAccountName: {{ .Values.raft.serviceAccount.name | default (include "vault.serviceAccountName" .) }}
+      serviceAccountName: {{ .Values.raft.serviceAccount.name | default (include "vault-operator.serviceAccountName" .) }}
       {{- with .Values.raft.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -104,7 +104,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ include "vault.fullname" . }}-config
+            name: {{ include "vault-operator.fullname" . }}-config
         - name: vault-tls
           secret:
             secretName: {{ .Values.raft.tlsSecretName }}

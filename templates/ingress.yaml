@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: vault-server
   namespace: {{ .Release.Namespace }}
-  {{- with .Values.server.ingress.annotations }}
+  {{- with .Values.ingress.annotations }}
   annotations:
     {{- range $key, $value := . }}
     {{ $key }}: {{ tpl (toString $value) $ | quote }}
@@ -11,7 +11,7 @@ metadata:
   {{- end }}
 spec:
   rules:
-    - host: {{ .Values.host }}
+    - host: {{ .Values.ingress.host }}
       http:
         paths:
           - path: /
@@ -21,14 +21,14 @@ spec:
                 name: vault
                 port:
                   number: 8200
-  {{- if .Values.server.ingress.tls }}
+  {{- if .Values.ingress.tls }}
   tls:
     - hosts:
-      - {{ .Values.server.ingress.hostname }}
-      {{- range .Values.server.ingress.extraHosts }}
+      - {{ .Values.server.ingress.hosts }}
+      {{- range .Values.ingress.extraHosts }}
         {{- if .name }}
       - {{ tpl .name $ }}
         {{- end }}
       {{- end }}
-      secretName: argocd-secret
+      secretName: vault-service-tls
   {{- end }}

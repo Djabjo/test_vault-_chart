@@ -78,24 +78,38 @@ serviceAccount:
   name: ""
 
 service:
-  ingress:
-    enabled: true
-    annotations:
-      kubernetes.io/ingress.class: "nginx"
-      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-      cert-manager.io/cluster-issuer: letsencrypt-prod
-    ingressClassName: nginx
-    hosts:
-      - host: vault.k8s.djabjo.ru
-        paths:
-          - path: /
-            pathType: Prefix
+  # -- Annotations to be added to the service.
+  annotations: {}
+
+  # -- Kubernetes [service type](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types).
+  type: ClusterIP
+
+  # -- The name of the service to use.
+  # If not set, a name is generated using the fullname template.
+  name: ""
+
+  externalPort: 80
+  internalPort: 8080
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  ingressClassName: nginx
+  hosts:
+    - host: vault.k8s.djabjo.ru
+      paths:
+        - path: /
+          pathType: Prefix
   tls:
     - hosts:
         - vault.k8s.djabjo.ru
       secretName: vault-service-tls
+
 # -- Container resource [requests and limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/).
 # See the [API reference](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#resources) for details.
 resources:

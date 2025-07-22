@@ -77,14 +77,10 @@ spec:
 
   serviceRegistrationEnabled: true
 
+  {{- if .Values.raft.resources }}
   resources:
-    vault:
-      limits:
-        memory: "512Mi"
-        cpu: "200m"
-      requests:
-        memory: "256Mi"
-        cpu: "100m"
+  {{- toYaml .Values.raft.resources | nindent 4 }}
+  {{- end }}
 
   vaultEnvsConfig:
     - name: VAULT_LOG_LEVEL

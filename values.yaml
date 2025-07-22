@@ -197,4 +197,4 @@ raft:
     storageClassName: "local-path"
     accessMode: ReadWriteOnce
 
-  tlsSecretName: vault-servicetls
+  tlsSecretName: vault-service-tls

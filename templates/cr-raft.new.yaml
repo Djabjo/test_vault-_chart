@@ -85,3 +85,7 @@ spec:
       requests:
         memory: "256Mi"
         cpu: "100m"
+
+  vaultEnvsConfig:
+    - name: VAULT_LOG_LEVEL
+      value: debug

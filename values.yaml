@@ -102,11 +102,11 @@ ingress:
   
   ingressClassName: nginx
 
-  host: vault.k8s.djabjo.ru
+  host: vault2.k8s.djabjo.ru
 
   tls:
     - hosts:
-        - vault.k8s.djabjo.ru
+        - vault2.k8s.djabjo.ru
       secretName: vault-service-tls
 
 # -- Container resource [requests and limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/).

@@ -177,26 +177,6 @@ raft:
   serviceAccount:
     name: vault
 
-  affinity: {}
-  nodeSelector: {}
-  tolerations: []
-  terminationGracePeriodSeconds: 10
-
-  vaultEnvsConfig:
-    - name: VAULT_LOG_LEVEL
-      value: debug
-
-  livenessProbe:
-    initialDelaySeconds: 60
-    periodSeconds: 10
-    successThreshold: 1
-    timeoutSeconds: 1
-
-  readinessProbe:
-    periodSeconds: 10
-    successThreshold: 1
-    timeoutSeconds: 1
-
   resources:
     limits:
       cpu: 200m
@@ -205,10 +185,13 @@ raft:
       cpu: 100m
       memory: 256Mi
 
-  pvc:
-    size: 1Gi
-    storageClassName: "local-path"
-    accessMode: ReadWriteOnce
-
-  tlsSecretName: vault-service-tls
-
+  volumeClaimTemplates:
+    - metadata:
+        name: vault-raft
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: 1Gi

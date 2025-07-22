@@ -30,17 +30,10 @@ spec:
   serviceAccount: {{ .Values.raft.serviceAccount.name }}
 
   serviceType: ClusterIP
-
+  {{- if .Values.raft.volumeClaimTemplates }}
   volumeClaimTemplates:
-    - metadata:
-        name: vault-raft
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        volumeMode: Filesystem
-        resources:
-          requests:
-            storage: 1Gi
+  {{- toYaml .Values.raft.volumeClaimTemplates | nindent 4 }}
+  {{- end }}
 
   volumeMounts:
     - name: vault-raft
@@ -85,3 +78,5 @@ spec:
   vaultEnvsConfig:
     - name: VAULT_LOG_LEVEL
       value: debug
+
+

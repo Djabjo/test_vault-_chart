@@ -11,9 +11,7 @@ metadata:
   {{- end }}
 spec:
   rules:
-    {{- if .Values.ingress.hosts }}
-      {{- range .Values.ingress.hosts }}
-    - host: {{ . | quote }}
+    - host: {{ .Values.ingress.host }}
       http:
         paths:
           - path: /
@@ -23,6 +21,7 @@ spec:
                 name: vault
                 port:
                   number: 8200
+    
   {{- if .Values.ingress.tls }}
   tls:
   {{- range .Values.ingress.tls }}
